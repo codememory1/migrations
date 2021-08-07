@@ -1,0 +1,36 @@
+<?php
+
+namespace {namespace};
+
+use Codememory\Components\Database\Migrations\AbstractMigration;
+use Codememory\Components\Database\Migrations\Interfaces\SchemaInterface as MigrationSchemaInterface;
+
+/**
+ * Class {name}
+ *
+ * @package {namespace}
+ */
+final class {name} extends AbstractMigration
+{
+
+    /**
+     * @inheritDoc
+     */
+    public function up(MigrationSchemaInterface $schema): void
+    {
+
+    {up}
+
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function down(MigrationSchemaInterface $schema): void
+    {
+
+    {down}
+
+    }
+
+}

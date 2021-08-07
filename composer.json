@@ -1,0 +1,38 @@
+{
+    "name": "codememory/migrations",
+    "description": "migrations",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Danil",
+            "email": "kostynd1@gmail.com"
+        }
+    ],
+    "require": {
+        "ext-pdo": "*",
+        "codememory/config": "^1.1",
+        "codememory/console": "^1.0",
+        "codememory/database-connection": "^1.0",
+        "codememory/database-schema": "^2.0",
+        "codememory/date-time": "^1.0",
+        "codememory/finder": "^1.1",
+        "codememory/fs": "^1.1",
+        "codememory/global-config": "^1.1",
+        "codememory/markup": "^2.0",
+        "codememory/orm": "^1.0",
+        "codememory/query-builder": "^1.0",
+        "codememory/support": "^1.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Codememory\\Components\\Database\\Migrations\\": "",
+            "Migrations\\": "migrations/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^5.3"
+    }
+}

@@ -1,0 +1,7 @@
+{
+  "migrations": {
+    "pathWithMigrations": "Migrations\/",
+    "namespaceMigration": "Migrations\\",
+    "configName": "database"
+  }
+}
