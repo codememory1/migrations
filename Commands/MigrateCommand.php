@@ -5,6 +5,7 @@ namespace Codememory\Components\Database\Migrations\Commands;
 use Codememory\Components\Console\Command;
 use Codememory\Components\Database\Migrations\Executor;
 use Codememory\Components\Database\Migrations\MigrationData;
+use Codememory\Components\Database\Migrations\MigrationRepository;
 use Codememory\Components\Database\Migrations\Migrator;
 use Codememory\Components\Database\Migrations\Utils as MigrationUtils;
 use Codememory\Components\Database\Orm\Commands\AbstractCommand;
@@ -61,6 +62,7 @@ class MigrateCommand extends AbstractCommand
             return Command::FAILURE;
         }
 
+        $migrationRepository = new MigrationRepository($this->connector);
         $migrationUtils = new MigrationUtils();
         $migrationData = new MigrationData($migrationUtils);
         $executor = new Executor($this->connector);
@@ -69,6 +71,8 @@ class MigrateCommand extends AbstractCommand
             'queries'        => 0,
             'execution-time' => 0
         ];
+
+        $migrationRepository->createTable();
 
         if ($input->getOption('name')) {
             $migrationBundles = $migrationData->getMigrationNames();
