@@ -131,7 +131,7 @@ class MigrationCreator
     private function migrationStub(FileInterface $filesystem): string
     {
 
-        return file_get_contents($filesystem->getRealPath('./Commands/Stubs/MigrationStub.stub'));
+        return file_get_contents($filesystem->getRealPath('vendor/codememory/migrations/Commands/Stubs/MigrationStub.stub'));
 
     }
 
