@@ -11,6 +11,8 @@ use Codememory\Components\Database\Orm\SQLBuilder\CreateTableOfEntity;
 use Codememory\Components\Database\Orm\SQLBuilder\DropTableOfEntity;
 use Codememory\Components\Database\Orm\Utils as OrmUtils;
 use Codememory\Components\Finder\Find;
+use Codememory\FileSystem\File;
+use Codememory\FileSystem\Interfaces\FileInterface;
 use Codememory\Support\Str;
 use JetBrains\PhpStorm\ArrayShape;
 use ReflectionException;
@@ -57,7 +59,7 @@ class GenerateMigrationsCommand extends AbstractCommand
 
         $allMigrationsCreated = false;
 
-        foreach ($entities as $entity) {
+        foreach ($this->sortEntities(new File(), $entities) as $entity) {
             $entityFilename = Str::trimToSymbol($entity, '/', false);
             $entityClassName = Str::trimAfterSymbol($entityFilename, '.', false);
             $entityNamespace = $ormUtils->getEntityNamespace() . $entityClassName;
@@ -150,6 +152,27 @@ class GenerateMigrationsCommand extends AbstractCommand
         return <<<UP
             \$schema->addSql('{$createTableOfEntity->buildToString()}');
         UP;
+
+    }
+
+    /**
+     * @param File  $filesystem
+     * @param array $entities
+     *
+     * @return array
+     */
+    private function sortEntities(File $filesystem, array $entities): array
+    {
+
+        uasort($entities, function (string $first, string $second) use ($filesystem) {
+            if($filesystem->info->lastModified($first) > $filesystem->info->lastModified($second)) {
+                return 1;
+            }
+
+            return -1;
+        });
+
+        return $entities;
 
     }
 
