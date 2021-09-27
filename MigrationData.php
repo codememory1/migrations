@@ -179,7 +179,7 @@ class MigrationData implements MigrationDataInterface
             $timeOne = $this->getTimeMigration($oneData['full-name']);
             $timeTwo = $this->getTimeMigration($twoData['full-name']);
 
-            return $timeTwo > $timeOne;
+            return $timeTwo < $timeOne;
         });
 
         return $migrationFilesData;
