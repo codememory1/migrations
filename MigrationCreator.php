@@ -5,7 +5,6 @@ namespace Codememory\Components\Database\Migrations;
 use Codememory\Components\Database\Migrations\Interfaces\MigrationDataInterface;
 use Codememory\Components\Database\Migrations\Utils as MigrationUtils;
 use Codememory\FileSystem\File;
-use Codememory\FileSystem\Interfaces\FileInterface;
 use Codememory\Support\Str;
 use JetBrains\PhpStorm\ArrayShape;
 use JetBrains\PhpStorm\Pure;
@@ -71,7 +70,6 @@ class MigrationCreator
         $migrationFullName = $this->migrationData->generateMigrationFullName($migrationName);
         $pathWithMigrations = $this->migrationUtils->getPathWithMigrations();
         $stubMigration = $this->buildStubMigration(
-            $filesystem,
             Str::trimAfterSymbol($this->migrationUtils->getNamespaceMigration(), '\\', false),
             $migrationFullName,
             $up,
@@ -96,18 +94,17 @@ class MigrationCreator
     }
 
     /**
-     * @param FileInterface $filesystem
-     * @param string        $namespace
-     * @param string        $migrationFullName
-     * @param string|null   $up
-     * @param string|null   $down
+     * @param string      $namespace
+     * @param string      $migrationFullName
+     * @param string|null $up
+     * @param string|null $down
      *
      * @return string
      */
-    private function buildStubMigration(FileInterface $filesystem, string $namespace, string $migrationFullName, ?string $up = null, ?string $down = null): string
+    private function buildStubMigration(string $namespace, string $migrationFullName, ?string $up = null, ?string $down = null): string
     {
 
-        $stub = $this->migrationStub($filesystem);
+        $stub = $this->migrationStub();
 
         return str_replace([
             '{namespace}',
@@ -124,14 +121,12 @@ class MigrationCreator
     }
 
     /**
-     * @param FileInterface $filesystem
-     *
      * @return string
      */
-    private function migrationStub(FileInterface $filesystem): string
+    private function migrationStub(): string
     {
 
-        return file_get_contents($filesystem->getRealPath('vendor/codememory/migrations/Commands/Stubs/MigrationStub.stub'));
+        return file_get_contents(__DIR__ . '/Commands/Stubs/MigrationStub.stub');
 
     }
 

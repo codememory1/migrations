@@ -3,11 +3,13 @@
 namespace Codememory\Components\Database\Migrations;
 
 use Codememory\Components\Database\Connection\Interfaces\ConnectorInterface;
-use Codememory\Components\Database\QueryBuilder\Exceptions\NotSelectedStatementException;
-use Codememory\Components\Database\QueryBuilder\Interfaces\QueryBuilderInterface;
+use Codememory\Components\Database\Orm\QueryBuilder\Answer\Result;
+use Codememory\Components\Database\QueryBuilder\Exceptions\StatementNotSelectedException;
 use Codememory\Components\Database\QueryBuilder\QueryBuilder;
 use Codememory\Components\Database\Schema\StatementComponents\Column;
 use Codememory\Components\Database\Schema\Statements\Definition\CreateTable;
+use JetBrains\PhpStorm\Pure;
+use PDO;
 
 /**
  * Class MigrationRepository
@@ -20,6 +22,7 @@ class MigrationRepository
 {
 
     public const MIGRATION_TABLE_NAME = 'codememory_migrations';
+    public const QUERY_BUILDER_CREATOR = '__cdm-migrations';
 
     /**
      * @var ConnectorInterface
@@ -27,18 +30,19 @@ class MigrationRepository
     private ConnectorInterface $connector;
 
     /**
-     * @var QueryBuilderInterface
+     * @var QueryBuilder
      */
-    private QueryBuilderInterface $queryBuilder;
+    private QueryBuilder $queryBuilder;
 
     /**
      * @param ConnectorInterface $connector
      */
+    #[Pure]
     public function __construct(ConnectorInterface $connector)
     {
 
         $this->connector = $connector;
-        $this->queryBuilder = new QueryBuilder($this->connector);
+        $this->queryBuilder = new QueryBuilder($this->connector, self::QUERY_BUILDER_CREATOR);
 
     }
 
@@ -94,21 +98,39 @@ class MigrationRepository
     }
 
     /**
+     * @param QueryBuilder $queryBuilder
+     *
+     * @return Result
+     * @throws StatementNotSelectedException
+     */
+    public function generateResult(QueryBuilder $queryBuilder): Result
+    {
+
+        $records = $queryBuilder->getExecutor()->execute(
+            $queryBuilder->getStatement()->getQuery(),
+            $queryBuilder->getParameters()
+        )->fetchAll(PDO::FETCH_ASSOC);
+
+        return new Result($records);
+
+    }
+
+    /**
      * =>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>=>
      * Get all records from migration table
      * <=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=<=
      *
      * @return array
-     * @throws NotSelectedStatementException
+     * @throws StatementNotSelectedException
      */
     public function getRecords(): array
     {
 
         $qb = clone $this->queryBuilder;
 
-        $qb->select()->from(self::MIGRATION_TABLE_NAME);
+        $qb->select()->from(self::MIGRATION_TABLE_NAME)->execute();
 
-        return $qb->generateQuery()->getResult()->toArray();
+        return $this->generateResult($qb)->all();
 
     }
 
@@ -120,6 +142,7 @@ class MigrationRepository
      * @param string $name
      *
      * @return array
+     * @throws StatementNotSelectedException
      */
     public function getRecordByName(string $name): array
     {
@@ -133,13 +156,10 @@ class MigrationRepository
                 $qb->expression()->exprAnd(
                     $qb->expression()->condition('name', '=', ':name')
                 )
-            );
+            )
+            ->setParameter('name', $name);
 
-        return $qb
-            ->setParameter('name', $name)
-            ->generateQuery()
-            ->getResult()
-            ->toArray();
+        return $this->generateResult($qb)->all();
 
     }
 
@@ -151,7 +171,7 @@ class MigrationRepository
      * @param array $records
      *
      * @return void
-     * @throws NotSelectedStatementException
+     * @throws StatementNotSelectedException
      */
     public function addRecords(array $records): void
     {
@@ -161,10 +181,8 @@ class MigrationRepository
 
         $qb
             ->insert(self::MIGRATION_TABLE_NAME)
-            ->columns(...$columns)
-            ->records(...$records);
-
-        $qb->generateQuery()->execute();
+            ->setRecords($columns, ...$records)
+            ->execute();
 
     }
 
@@ -176,6 +194,7 @@ class MigrationRepository
      * @param string $migrationName
      *
      * @return bool
+     * @throws StatementNotSelectedException
      */
     public function existRecord(string $migrationName): bool
     {
@@ -193,6 +212,7 @@ class MigrationRepository
      * @param array  $data
      *
      * @return void
+     * @throws StatementNotSelectedException
      */
     public function updateRecord(string $migrationName, array $data): void
     {
@@ -200,15 +220,15 @@ class MigrationRepository
         $qb = clone $this->queryBuilder;
 
         $qb
-            ->update([self::MIGRATION_TABLE_NAME])
-            ->setData(array_keys($data), $data)
+            ->update(self::MIGRATION_TABLE_NAME)
+            ->updateData(array_keys($data), $data)
             ->where(
                 $qb->expression()->exprAnd(
                     $qb->expression()->condition('name', '=', ':name')
                 )
-            );
-
-        $qb->setParameter('name', $migrationName)->generateQuery()->execute();
+            )
+            ->setParameter('name', $migrationName)
+            ->execute();
 
     }
 
@@ -216,6 +236,7 @@ class MigrationRepository
      * @param string $migrationName
      *
      * @return void
+     * @throws StatementNotSelectedException
      */
     public function deleteRecord(string $migrationName): void
     {
@@ -223,14 +244,15 @@ class MigrationRepository
         $qb = clone $this->queryBuilder;
 
         $qb
-            ->delete(self::MIGRATION_TABLE_NAME)
+            ->delete()
+            ->from(self::MIGRATION_TABLE_NAME)
             ->where(
                 $qb->expression()->exprAnd(
                     $qb->expression()->condition('name', '=', ':name')
                 )
-            );
-
-        $qb->setParameter('name', $migrationName)->generateQuery()->execute();
+            )
+            ->setParameter('name', $migrationName)
+            ->execute();
 
     }
 
