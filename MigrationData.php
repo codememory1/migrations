@@ -172,12 +172,16 @@ class MigrationData implements MigrationDataInterface
     /**
      * @inheritDoc
      */
-    public function sortMigrationsByDate(array $migrationFilesData): array
+    public function sortMigrationsByDate(array $migrationFilesData, bool $toLess = false): array
     {
 
-        uasort($migrationFilesData, function (array $oneData, array $twoData) {
+        uasort($migrationFilesData, function (array $oneData, array $twoData) use ($toLess) {
             $timeOne = $this->getTimeMigration($oneData['full-name']);
             $timeTwo = $this->getTimeMigration($twoData['full-name']);
+
+            if($toLess) {
+                return $timeTwo > $timeOne;
+            }
 
             return $timeTwo < $timeOne;
         });

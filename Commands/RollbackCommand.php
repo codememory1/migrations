@@ -10,6 +10,7 @@ use Codememory\Components\Database\Migrations\Migrator;
 use Codememory\Components\Database\Migrations\Utils as MigrationUtils;
 use Codememory\Components\Database\Orm\Commands\AbstractCommand;
 use Codememory\Components\Database\QueryBuilder\Exceptions\NotSelectedStatementException;
+use Codememory\Components\Database\QueryBuilder\Exceptions\StatementNotSelectedException;
 use Codememory\Components\DateTime\Exceptions\InvalidTimezoneException;
 use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
@@ -86,7 +87,7 @@ class RollbackCommand extends AbstractCommand
 
             $this->rollback($migrationData, $executor, $dataStartMigrate);
         } else {
-            foreach ($migrationData->sortMigrationsByDate($migrationData->getMigrationFilesData()) as $migrationData) {
+            foreach ($migrationData->sortMigrationsByDate($migrationData->getMigrationFilesData(), true) as $migrationData) {
                 $this->rollback($migrationData, $executor, $dataStartMigrate);
             }
         }
@@ -108,7 +109,7 @@ class RollbackCommand extends AbstractCommand
      * @param array    $dataStartMigrate
      *
      * @throws InvalidTimezoneException
-     * @throws NotSelectedStatementException
+     * @throws StatementNotSelectedException
      */
     private function rollback(array $migrationData, Executor $executor, array &$dataStartMigrate): void
     {

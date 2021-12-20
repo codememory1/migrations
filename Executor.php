@@ -3,7 +3,7 @@
 namespace Codememory\Components\Database\Migrations;
 
 use Codememory\Components\Database\Connection\Interfaces\ConnectorInterface;
-use Codememory\Components\Database\QueryBuilder\Exceptions\NotSelectedStatementException;
+use Codememory\Components\Database\QueryBuilder\Exceptions\StatementNotSelectedException;
 use Codememory\Components\DateTime\DateTime;
 use Codememory\Components\DateTime\Exceptions\InvalidTimezoneException;
 
@@ -49,8 +49,8 @@ class Executor
      * @param MigrationSchema $schema
      *
      * @return array|bool
-     * @throws NotSelectedStatementException
      * @throws InvalidTimezoneException
+     * @throws StatementNotSelectedException
      */
     public function exec(array $migrationData, MigrationSchema $schema): array|bool
     {
@@ -58,8 +58,10 @@ class Executor
         if (!$this->migrationRepository->existRecord($migrationData['full-name'])) {
             $microTime = microtime(true);
 
-            $this->migrationCache->createCache($schema, $migrationData['name']);
-            $this->connector->getConnection()->exec(implode(';', $schema->getQueries()));
+            if ([] !== $schema->getQueries()) {
+                $this->migrationCache->createCache($schema, $migrationData['name']);
+                $this->connector->getConnection()->exec(implode(';', $schema->getQueries()));
+            }
 
             $ms = (microtime(true) - $microTime) * 1000;
 
